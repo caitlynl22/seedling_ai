@@ -101,12 +101,12 @@ RSpec.describe SeedlingAi::Utils do
     end
 
     describe "#to_h" do
-      it 'returns the expected keys and types' do
+      it "returns the expected keys and types" do
         hash = user_info.to_h
         expect(hash).to be_a(Hash)
-        expect(hash[:model]).to eq('TestUser')
+        expect(hash[:model]).to eq("TestUser")
         expect(hash[:attributes]).to be_a(Hash)
-        expect(hash[:attributes]).to include('name' => :string, 'email' => :string)
+        expect(hash[:attributes]).to include("name" => :string, "email" => :string)
         expect(hash[:validations]).to be_an(Array)
         expect(hash[:associations]).to be_an(Array)
       end
