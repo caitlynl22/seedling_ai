@@ -7,6 +7,7 @@ require_relative "seedling_ai/ai_client"
 
 require "seedling_ai/railtie" if defined?(Rails)
 
+# Main module for SeedlingAi gem
 module SeedlingAi
   class Error < StandardError; end
   class << self

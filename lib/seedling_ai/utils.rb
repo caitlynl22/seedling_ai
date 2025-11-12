@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module SeedlingAi
+  # Utility methods for the Seeder
   module Utils
     ModelInfo = Struct.new(
       :model,
