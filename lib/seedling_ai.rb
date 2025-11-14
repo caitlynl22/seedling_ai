@@ -4,6 +4,7 @@ require "logger"
 require_relative "seedling_ai/version"
 require_relative "seedling_ai/utils"
 require_relative "seedling_ai/ai_client"
+require_relative "seedling_ai/seeder"
 
 require "seedling_ai/railtie" if defined?(Rails)
 
