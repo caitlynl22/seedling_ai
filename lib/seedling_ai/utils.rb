@@ -42,17 +42,8 @@ module SeedlingAi
 
     def model_info(model)
       attributes = model.columns_hash.transform_values(&:type)
-
-      validations = model.validators.map do |v|
-        {
-          attributes: v.attributes.map(&:to_s),
-          type: v.class.name.demodulize.gsub("Validator", "").downcase
-        }
-      end
-
-      associations = model.reflect_on_all_associations.map do |a|
-        { name: a.name.to_s, macro: a.macro.to_s }
-      end
+      validations = map_validations(model)
+      associations = map_associations(model)
 
       ModelInfo.new(
         model: model,
@@ -60,6 +51,26 @@ module SeedlingAi
         validations: validations,
         associations: associations
       )
+    end
+
+    private
+
+    def map_validations(model)
+      model.validators.map do |v|
+        {
+          attributes: v.attributes.map(&:to_s),
+          type: v.class.name.demodulize.gsub("Validator", "").downcase
+        }
+      end
+    end
+
+    def map_associations(model)
+      model.reflect_on_all_associations.map do |a|
+        {
+          name: a.name.to_s,
+          macro: a.macro.to_s
+        }
+      end
     end
   end
 end
