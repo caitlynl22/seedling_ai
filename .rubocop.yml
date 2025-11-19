@@ -22,4 +22,4 @@ RSpec/MultipleExpectations:
   Max: 2 # Allows up to 2 expectations per example
 
 RSpec/ExampleLength:
-  Max: 7
+  Max: 10
