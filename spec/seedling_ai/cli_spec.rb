@@ -78,10 +78,13 @@ RSpec.describe SeedlingAi::CLI do
 
   describe "#list_models" do
     it "prints the list of ActiveRecord models" do
-      dummy_model1 = instance_double(User, name: "DummyModel1")
-      dummy_model2 = instance_double(Post, name: "DummyModel2")
+      stub_const("DummyModel1", Class.new(ActiveRecord::Base))
+      stub_const("DummyModel2", Class.new(ActiveRecord::Base))
 
-      allow(ActiveRecord::Base).to receive(:descendants).and_return([dummy_model1, dummy_model2])
+      dummy1 = instance_double(DummyModel1, name: "DummyModel1")
+      dummy2 = instance_double(DummyModel2, name: "DummyModel2")
+
+      allow(ActiveRecord::Base).to receive(:descendants).and_return([dummy1, dummy2])
 
       output = capture_stdout do
         described_class.start(["list_models"])
