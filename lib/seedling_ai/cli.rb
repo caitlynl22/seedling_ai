@@ -27,6 +27,14 @@ module SeedlingAi
       handle_generic_error(e)
     end
 
+    desc "list_models", "List all available ActiveRecord models"
+    def list_models
+      puts "Available ActiveRecord Models:"
+      ActiveRecord::Base.descendants.each do |model|
+        puts "- #{model.name}"
+      end
+    end
+
     desc "version", "Display the version of SeedlingAI"
     def version
       puts "SeedlingAI version #{SeedlingAi::VERSION}"

@@ -23,17 +23,24 @@ namespace :seedling_ai do
     args_for_cli += ["--context", context.to_s] if context && !context.to_s.empty?
     args_for_cli += ["--export", export.to_s.downcase] if export && !export.to_s.empty?
 
-    begin
-      SeedlingAi::CLI.start(args_for_cli)
-    rescue SystemExit => e
-      # Prevent the CLI from terminating the rake process.
-      # Re-raise for non-zero status so CI/test runners observe failures.
-      raise e if e.status != 0
-    end
+    safely_run_cli(args_for_cli)
+  end
+
+  desc "List available ActiveRecord models"
+  task list_models: :environment do
+    safely_run_cli(["list_models"])
   end
 
   desc "Print SeedlingAI version"
   task :version do
-    puts "SeedlingAI version #{SeedlingAi::VERSION}"
+    safely_run_cli(["version"])
+  end
+
+  private
+
+  def safely_run_cli(args)
+    SeedlingAi::CLI.start(args)
+  rescue SystemExit => e
+    raise e if e.status != 0
   end
 end

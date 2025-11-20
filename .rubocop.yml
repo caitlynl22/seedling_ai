@@ -17,6 +17,10 @@ Layout/LineLength:
 Metrics/MethodLength:
   Max: 15
 
+Metrics/BlockLength:
+  Exclude:
+    - 'lib/tasks/**/*.rake'
+
 # rubocop-rspec specific configurations
 RSpec/MultipleExpectations:
   Max: 2 # Allows up to 2 expectations per example

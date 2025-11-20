@@ -76,6 +76,22 @@ RSpec.describe SeedlingAi::CLI do
     end
   end
 
+  describe "#list_models" do
+    it "prints the list of ActiveRecord models" do
+      dummy_model1 = instance_double(User, name: "DummyModel1")
+      dummy_model2 = instance_double(Post, name: "DummyModel2")
+
+      allow(ActiveRecord::Base).to receive(:descendants).and_return([dummy_model1, dummy_model2])
+
+      output = capture_stdout do
+        described_class.start(["list_models"])
+      end
+
+      expect(output).to include("- DummyModel1")
+      expect(output).to include("- DummyModel2")
+    end
+  end
+
   describe "#version" do
     it "prints the version string" do
       output = capture_stdout do
