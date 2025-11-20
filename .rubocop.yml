@@ -23,7 +23,7 @@ Metrics/BlockLength:
 
 # rubocop-rspec specific configurations
 RSpec/MultipleExpectations:
-  Max: 2 # Allows up to 2 expectations per example
+  Max: 2
 
 RSpec/ExampleLength:
   Max: 10
