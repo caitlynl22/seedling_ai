@@ -27,8 +27,7 @@ module SeedlingAi
       info = model_info(@model)
       prompt = build_prompt(info.summary)
 
-      data = SeedlingAi::AiClient.generate(prompt)
-      records = safe_parse_json(data)
+      records = SeedlingAi::AiClient.generate(prompt)
 
       @export ? export(records) : insert_records(records)
     end
@@ -49,14 +48,6 @@ module SeedlingAi
         - Use realistic data for each attribute.
         - Output ONLY valid JSON (array of objects).
       PROMPT
-    end
-
-    def safe_parse_json(json_string)
-      JSON.parse(json_string)
-    rescue JSON::ParserError => e
-      SeedlingAi.logger.error "❌ SeedlingAi: invalid JSON returned from AI"
-      SeedlingAi.logger.debug json_string
-      raise e
     end
 
     def export(records)

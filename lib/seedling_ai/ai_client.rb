@@ -36,7 +36,8 @@ module SeedlingAi
 
         text = extract_output_text(response)
         SeedlingAi.logger.debug { "SeedlingAi: Received #{text.length} chars from OpenAI" }
-        text.strip
+
+        parse_json(text)
       rescue OpenAI::Errors::APIError => e
         handle_api_error(e)
       rescue StandardError => e
@@ -75,9 +76,31 @@ module SeedlingAi
         text_blocks.map { |c| c[:text] }.join("\n")
       end
 
+      def parse_json(text)
+        JSON.parse(text)
+      rescue JSON::ParserError => e
+        begin
+          JSON.parse(strip_code_fences(text))
+        rescue JSON::ParserError
+          handle_json_error(e, text)
+        end
+      end
+
+      def strip_code_fences(text)
+        text.strip
+            .sub(/\A```(?:json)?\s*/i, "")
+            .sub(/\s*```\z/, "")
+      end
+
       def handle_api_error(error)
         SeedlingAi.logger.error "SeedlingAi: OpenAI API error - #{error.class}: #{error.message}"
         raise "SeedlingAi: OpenAI request failed - #{error.message}"
+      end
+
+      def handle_json_error(error, text)
+        SeedlingAi.logger.error "SeedlingAi: Failed to parse JSON output"
+        SeedlingAi.logger.debug { text }
+        raise "SeedlingAi: Unable to parse JSON output - #{error.message}"
       end
 
       def handle_generic_error(error)
