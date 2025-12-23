@@ -3,17 +3,16 @@
 require "spec_helper"
 
 RSpec.describe SeedlingAi::Seeder do
+  let(:model_class) { User }
+  let(:records) { [{ "name" => "Alice" }, { "name" => "Bob" }] }
+  let(:mock_info) { double(summary: "Model: User\nAttributes: name: string") }
+  let(:logger) { instance_spy(Logger) }
+
   before do
     stub_const("User", Class.new(ActiveRecord::Base))
     allow(SeedlingAi).to receive(:logger).and_return(logger)
-    allow(SeedlingAi::AiClient).to receive(:generate).and_return(json_data)
+    allow(SeedlingAi::AiClient).to receive(:generate).and_return(records)
   end
-
-  let(:model_class) { User }
-  let(:records) { [{ "name" => "Alice" }, { "name" => "Bob" }] }
-  let(:json_data) { records.to_json }
-  let(:mock_info) { double(summary: "Model: User\nAttributes: name: string") }
-  let(:logger) { instance_spy(Logger) }
 
   # Helper to create a seeder and stub instance-level model lookups cleanly
   def build_seeder(**opts)
@@ -115,18 +114,6 @@ RSpec.describe SeedlingAi::Seeder do
       it "raises ArgumentError" do
         seeder = build_seeder(export: "csv")
         expect { seeder.run }.to raise_error(ArgumentError, /Export format must be one of/)
-      end
-    end
-
-    context "when JSON parsing fails" do
-      it "logs an error and raises JSON::ParserError" do
-        allow(SeedlingAi::AiClient).to receive(:generate).and_return("invalid json")
-        seeder = build_seeder
-
-        allow(logger).to receive(:error)
-
-        expect { seeder.run }.to raise_error(JSON::ParserError)
-        expect(logger).to have_received(:error).with(/invalid JSON/)
       end
     end
 
