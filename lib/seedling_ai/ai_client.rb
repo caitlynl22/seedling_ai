@@ -5,15 +5,15 @@ require "openai"
 module SeedlingAi
   # The AiClient handles communication with the OpenAI API
   class AiClient
-    class << self
-      DEFAULT_PARAMS = { max_output_tokens: 2048, temperature: 0.3 }.freeze
-      JSON_INSTRUCTIONS = <<~INSTRUCTIONS
-        You are a JSON generator.
-        You must return valid JSON only.
-        Do not include markdown, code fences, comments, or explanations.
-        The output must be directly parseable by JSON.parse.
-      INSTRUCTIONS
+    DEFAULT_PARAMS = { max_output_tokens: 2048, temperature: 0.3 }.freeze
+    JSON_INSTRUCTIONS = <<~INSTRUCTIONS
+      You are a JSON generator.
+      You must return valid JSON only.
+      Do not include markdown, code fences, comments, or explanations.
+      The output must be directly parseable by JSON.parse.
+    INSTRUCTIONS
 
+    class << self
       def generate(prompt)
         client = build_client
         model = SeedlingAi.model
