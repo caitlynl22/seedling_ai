@@ -7,15 +7,34 @@ module SeedlingAi
   class AiClient
     class << self
       DEFAULT_PARAMS = { max_output_tokens: 2048, temperature: 0.3 }.freeze
+      JSON_INSTRUCTIONS = <<~INSTRUCTIONS
+        You are a JSON generator.
+        You must return valid JSON only.
+        Do not include markdown, code fences, comments, or explanations.
+        The output must be directly parseable by JSON.parse.
+      INSTRUCTIONS
+
       def generate(prompt)
         client = build_client
         model = SeedlingAi.model
 
         SeedlingAi.logger.debug { "SeedlingAi: Sending prompt with model=#{model}" }
 
-        response = client.responses(parameters: DEFAULT_PARAMS.merge(model: model, input: prompt))
-        text = extract_output_text(response)
+        response = client.responses.create(
+          **DEFAULT_PARAMS,
+          model: model,
+          instructions: JSON_INSTRUCTIONS,
+          input: [
+            {
+              role: :user,
+              content: [
+                { type: :input_text, text: prompt }
+              ]
+            }
+          ]
+        )
 
+        text = extract_output_text(response)
         SeedlingAi.logger.debug { "SeedlingAi: Received #{text.length} chars from OpenAI" }
         text.strip
       rescue OpenAI::Errors::APIError => e
