@@ -62,11 +62,17 @@ module SeedlingAi
       end
 
       def extract_output_text(response)
-        text = response["output_text"]
-        return text if text.is_a?(String)
+        message = response.output&.find { |m| m[:role] == :assistant }
 
-        SeedlingAi.logger.error "SeedlingAi: Unexpected OpenAI response: #{response.inspect}"
-        raise "SeedlingAi: No output_text returned from OpenAI"
+        SeedlingAi.logger.error "SeedlingAi: No assistant message returned in Open API response: #{response.inspect}"
+        raise "No assistant message in response" unless message
+
+        text_blocks = message[:content].select { |c| c[:type] == :output_text }
+
+        SeedlingAi.logger.error "SeedlingAi: No output_text content returned in Open API response: #{response.inspect}"
+        raise "No output_text content in response" if text_blocks.empty?
+
+        text_blocks.map { |c| c[:text] }.join("\n")
       end
 
       def handle_api_error(error)
