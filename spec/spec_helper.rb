@@ -8,6 +8,8 @@ ActiveRecord::Base.establish_connection(
   database: ":memory:"
 )
 
+Dir[File.expand_path(File.join(File.dirname(__FILE__), "support", "**", "*.rb"))].each { |f| require f }
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -19,6 +21,8 @@ RSpec.configure do |config|
     c.syntax = :expect
     c.include_chain_clauses_in_custom_matcher_descriptions = true
   end
+
+  config.include OpenAIResponseHelper
 
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true

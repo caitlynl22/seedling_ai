@@ -7,13 +7,12 @@ RSpec.describe SeedlingAi::AiClient do
   let(:prompt) { "Generate sample JSON for User" }
   let(:logger) { instance_spy(Logger) }
 
-  let(:client) { instance_double(OpenAI::Client) }
-
   # This is an internal SDK proxy with no public class
   # We intentionally do NOT verify it against a constant
   # rubocop:disable RSpec/VerifiedDoubleReference
-  let(:responses_proxy) { instance_spy("OpenAI::ResponsesProxy") }
+  let(:responses_proxy) { instance_spy("ResponsesProxy") }
   # rubocop:enable RSpec/VerifiedDoubleReference
+  let(:fake_client) { instance_spy(OpenAI::Client, responses: responses_proxy) }
 
   before do
     stub_const("OpenAI::Errors::APIError", Class.new(StandardError))
@@ -24,28 +23,15 @@ RSpec.describe SeedlingAi::AiClient do
       logger: logger
     )
 
-    allow(OpenAI::Client).to receive(:new).and_return(client)
-    allow(client).to receive(:responses).and_return(responses_proxy)
+    allow(OpenAI::Client).to receive(:new).and_return(fake_client)
   end
 
   describe ".generate" do
     context "when the API returns valid JSON output_text" do
-      let(:response) do
-        instance_double(
-          OpenAI::Models::Responses::Response,
-          output: [
-            {
-              role: :assistant,
-              content: [
-                { type: :output_text, text: '[{"name":"Alice"}]' }
-              ]
-            }
-          ]
-        )
-      end
+      let(:valid_json) { '[{ "name": "Alice" }]' }
 
       before do
-        allow(responses_proxy).to receive(:create).and_return(response)
+        allow(responses_proxy).to receive(:create).and_return(build_openai_response_with_text(valid_json))
       end
 
       it "returns parsed JSON" do
@@ -82,7 +68,7 @@ RSpec.describe SeedlingAi::AiClient do
       end
 
       before do
-        allow(responses_proxy).to receive(:create).and_return(response)
+        allow(responses_proxy).to receive(:create).and_return(build_openai_response_with_text(invalid_json))
       end
 
       it "raises a descriptive error" do
