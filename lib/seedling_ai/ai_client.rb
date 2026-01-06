@@ -14,6 +14,7 @@ module SeedlingAi
     INSTRUCTIONS
 
     class << self
+      # rubocop:disable Metrics/MethodLength
       def generate(prompt)
         client = build_client
         model = SeedlingAi.model
@@ -43,6 +44,7 @@ module SeedlingAi
       rescue StandardError => e
         handle_generic_error(e)
       end
+      # rubocop:enable Metrics/MethodLength
 
       private
 
