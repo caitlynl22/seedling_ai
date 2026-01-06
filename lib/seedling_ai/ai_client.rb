@@ -64,14 +64,10 @@ module SeedlingAi
 
       def extract_output_text(response)
         message = response.output&.find { |m| m[:role] == :assistant }
-
-        SeedlingAi.logger.error "SeedlingAi: No assistant message returned in Open API response: #{response.inspect}"
-        raise "No assistant message in response" unless message
+        handle_no_assistant_message(response) unless message
 
         text_blocks = message[:content].select { |c| c[:type] == :output_text }
-
-        SeedlingAi.logger.error "SeedlingAi: No output_text content returned in Open API response: #{response.inspect}"
-        raise "No output_text content in response" if text_blocks.empty?
+        handle_no_output_text(response) if text_blocks.empty?
 
         text_blocks.map { |c| c[:text] }.join("\n")
       end
@@ -106,6 +102,16 @@ module SeedlingAi
       def handle_generic_error(error)
         SeedlingAi.logger.error "SeedlingAi: Unexpected error calling OpenAI - #{error.message}"
         raise
+      end
+
+      def handle_no_assistant_message(response)
+        SeedlingAi.logger.error "SeedlingAi: No assistant message returned in Open API response: #{response.inspect}"
+        raise "No assistant message in response"
+      end
+
+      def handle_no_output_text(response)
+        SeedlingAi.logger.error "SeedlingAi: No output_text content returned in Open API response: #{response.inspect}"
+        raise "No output_text content in response"
       end
     end
   end
