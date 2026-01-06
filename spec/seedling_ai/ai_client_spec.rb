@@ -54,26 +54,58 @@ RSpec.describe SeedlingAi::AiClient do
       end
     end
 
-    context "when no output_text is returned" do
-      let(:response) do
-        instance_double(
-          OpenAI::Models::Responses::Response,
-          output: [
-            {
-              role: :assistant,
-              content: []
-            }
-          ]
-        )
+    context "when no assistant message is returned" do
+      before do
+        allow(responses_proxy).to receive(:create)
+          .and_return(response_with_no_assistant)
       end
+
+      it "raises a clear error" do
+        expect { described_class.generate(prompt) }
+          .to raise_error(RuntimeError, /No assistant message in response/)
+      end
+
+      it "logs an error for debugging" do
+        expect do
+          described_class.generate(prompt)
+        end.to raise_error(RuntimeError)
+
+        expect(logger).to have_received(:error)
+          .with(/No assistant message returned/)
+      end
+    end
+
+    context "when the assistant message has no output_text content" do
+      before do
+        allow(responses_proxy).to receive(:create)
+          .and_return(response_with_assistant_but_no_output_text)
+      end
+
+      it "raises a clear error" do
+        expect { described_class.generate(prompt) }
+          .to raise_error(RuntimeError, /No output_text content in response/)
+      end
+
+      it "logs an error for debugging" do
+        expect do
+          described_class.generate(prompt)
+        end.to raise_error(RuntimeError)
+
+        expect(logger).to have_received(:error)
+          .with(/No output_text content returned/)
+      end
+    end
+
+    context "when the model returns invalid JSON" do
+      let(:invalid_json) { '{ name: "Alice"' }
 
       before do
         allow(responses_proxy).to receive(:create).and_return(build_openai_response_with_text(invalid_json))
       end
 
-      it "raises a descriptive error" do
+      it "raises a descriptive JSON parsing error" do
         expect { described_class.generate(prompt) }
-          .to raise_error(RuntimeError, /No output_text content/)
+          .to raise_error(RuntimeError, /Unable to parse JSON output/)
       end
     end
 
