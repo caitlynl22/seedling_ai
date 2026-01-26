@@ -3,6 +3,8 @@
 module SeedlingAi
   # Utility methods for the Seeder
   module Utils
+    MAX_ASSOCIATION_IDS = 50
+
     ModelInfo = Struct.new(
       :model,
       :attributes,
@@ -53,6 +55,27 @@ module SeedlingAi
       )
     end
 
+    def load_existing_association_ids(model)
+      non_nullable_foreign_key_associations(model).to_h do |association|
+        klass = association.class_name.constantize
+
+        ids = klass.limit(MAX_ASSOCIATION_IDS).pluck(:id)
+
+        if ids.empty?
+          raise "SeedlingAi Error: Cannot seed #{model.name} because it
+          requires #{klass.name} records, but none exist in the database."
+        end
+
+        [
+          association.foreign_key,
+          {
+            model: klass.name,
+            ids: ids
+          }
+        ]
+      end
+    end
+
     private
 
     def map_validations(model)
@@ -68,9 +91,23 @@ module SeedlingAi
       model.reflect_on_all_associations.map do |a|
         {
           name: a.name.to_s,
-          macro: a.macro.to_s
+          macro: a.macro.to_s,
+          foreign_key: a.foreign_key.to_s,
+          class_name: a.class_name
         }
       end
+    end
+
+    def non_nullable_foreign_key_associations(model)
+      model.load_schema
+
+      model
+        .reflect_on_all_associations(:belongs_to)
+        .reject(&:polymorphic?)
+        .select do |association|
+          column = association.foreign_key
+          model.columns_hash[column]&.null == false
+        end
     end
   end
 end

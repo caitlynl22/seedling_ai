@@ -25,7 +25,11 @@ module SeedlingAi
       SeedlingAi.logger.info "🌱 Generating #{@count} #{@model.name} records..."
 
       info = model_info(@model)
-      prompt = build_prompt(info.summary)
+
+      association_ids = load_existing_association_ids(@model)
+      association_context = build_association_context(association_ids) if association_ids.any?
+
+      prompt = build_prompt(info.summary, association_context)
 
       records = SeedlingAi::AiClient.generate(prompt)
 
@@ -34,7 +38,23 @@ module SeedlingAi
 
     private
 
-    def build_prompt(summary)
+    def build_association_context(association_ids)
+      lines = association_ids.map do |foreign_key, data|
+        <<~LINE.strip
+          - #{foreign_key}: must be one of [#{data[:ids].join(", ")}] (existing #{data[:model]} records)
+        LINE
+      end
+
+      <<~CONTEXT
+        Association constraints:
+        Use ONLY the following existing IDs.
+        Do NOT create or infer associated records.
+
+        #{lines.join("\n")}
+      CONTEXT
+    end
+
+    def build_prompt(summary, association_context)
       <<~PROMPT
         You are a Ruby on Rails data generation assistant.
 
@@ -42,6 +62,7 @@ module SeedlingAi
 
         #{@context ? "Context: #{@context}" : ""}
         #{summary}
+        #{association_context ? "Association Context:\n#{association_context}" : ""}
 
         Rules:
         - Exclude id, created_at, updated_at.
